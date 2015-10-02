@@ -15,4 +15,4 @@ for article in data:
 counts = vectorizer.fit_transform(corpus)
 tfidf = transformer.fit_transform(counts)
 
-pickle.dump(tfidf, open("tfidf.pickle", "wb"))
+pickle.dump((tfidf, titles) , open("tfidf.pickle", "wb"))
