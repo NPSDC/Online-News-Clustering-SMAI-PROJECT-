@@ -39,4 +39,4 @@ for line in content:
 		if article != None and tagdata != None:
 			tagdata.append(line.strip("'"))
 
-pickle.dump(theData, open("reuters.pickle", "w"))
+pickle.dump(theData, open("reuters.pickle", "wb"))

@@ -4,7 +4,7 @@ import sklearn.feature_extraction.text as TFE
 vectorizer = TFE.CountVectorizer(min_df=1)
 transformer = TFE.TfidfTransformer()
 
-data = pickle.load(open("reuters.pickle", "r"))
+data = pickle.load(open("reuters.pickle", "rb"))
 corpus = list()
 titles = list()
 for article in data:
@@ -15,4 +15,4 @@ for article in data:
 counts = vectorizer.fit_transform(corpus)
 tfidf = transformer.fit_transform(counts)
 
-pickle.dump(tfidf, open("tfidf.pickle", "w"))
+pickle.dump(tfidf, open("tfidf.pickle", "wb"))
