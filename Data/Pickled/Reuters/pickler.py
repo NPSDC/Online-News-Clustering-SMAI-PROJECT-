@@ -1,5 +1,8 @@
 import pickle
 
+"""
+import pickle
+
 theFile = open("parsedSGML.txt", "r")
 content = theFile.readlines()
 theFile.close()
@@ -40,3 +43,46 @@ for line in content:
 			tagdata.append(line.strip("'"))
 
 pickle.dump(theData, open("reuters.pickle", "wb"))
+
+"""
+
+
+
+theFile = open("parsedSGML.txt", "r")
+content = theFile.readlines()
+theFile.close()
+
+content = iter(content)
+
+def decipher(content, tag):
+	article = None
+	data = list()
+	for line in content:
+		if line.startswith("end tag: "):
+			line = line.strip("end tag: ").strip()
+			if line.startswith("</"+tag):
+				return data
+			else:
+				return None
+		elif line.startswith("start tag: "):
+			line = line.strip("start tag: ").strip()
+			if article == None:
+				article = dict()
+				data.append(article)
+			newtag = line.strip("<>").split()[0]
+			article[newtag] = decipher(content, newtag)
+		elif line.startswith("data: "):
+			line = line.strip("data: ").strip().strip("'")
+			line = line.replace("\\n", "\n").strip()
+			if line:
+				data.append(line)
+
+data = list()
+for line in content:
+	if line.startswith("start tag: "):
+		line = line.strip("start tag: ")
+		line = line.strip()
+		if line.startswith("<reuters"):
+			data.append(decipher(content, "reuters"))
+
+pickle.dump(data, open("reuters.pickle", "wb"))
