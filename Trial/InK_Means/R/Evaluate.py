@@ -5,15 +5,21 @@ from incremental_k_means import Cluster
 def cos_similarity(cl1, cl2):
 	return np.dot(cl1, cl2)/np.linalg.norm(cl1)/np.linalg.norm(cl2)
 
+def no_of_docs_similarity(cl1, cl2):
+	common = set(cl1.documents.keys()).intersection(set(cl2.documents.keys()))
+	return len(common)
+
 def compute_best(actual_clusters, gen_clusters, l_ac, l_gen):
 	matched_clusters = np.empty(l_gen, dtype = int)
 	for i in xrange(l_gen):
-		max_sim = cos_similarity(actual_clusters[0].centroid, gen_clusters[i].centroid)
+		#max_sim = cos_similarity(actual_clusters[0].centroid, gen_clusters[i].centroid)
+		max_common = no_of_docs_similarity(actual_clusters[0], gen_clusters[i])
 		max_index = 0
 		for j in xrange(l_ac):
-			sim = cos_similarity(actual_clusters[j].centroid, gen_clusters[i].centroid)
-			if (sim > max_sim):
-				max_sim = sim
+			#sim = cos_similarity(actual_clusters[j].centroid, gen_clusters[i].centroid)
+			no_of_common = max_common(actual_clusters[j], gen_clusters[i])
+			if (no_of_common > max_common):
+				max_common = no_of_common
 				max_index = j
 		matched_clusters[i] = max_index
 		# print max_sim, "\t", set(actual_clusters[matched_clusters[i]].documents.keys()).intersection(set(gen_clusters[i].documents.keys()))
