@@ -17,10 +17,17 @@ def compute_best(actual_clusters, gen_clusters, l_ac, l_gen):
 		max_index = 0
 		for j in xrange(l_ac):
 			#sim = cos_similarity(actual_clusters[j].centroid, gen_clusters[i].centroid)
+			flag = 1
 			no_of_common = max_common(actual_clusters[j], gen_clusters[i])
-			if (no_of_common > max_common):
-				max_common = no_of_common
-				max_index = j
+			if (no_of_common >= max_common):
+				if(no_of_common == max_common):
+					sim1 = cos_similarity(actual_clusters[max_index].centroid, gen_clusters[i])
+					sim2 = cos_similarity(actual_clusters[j].centroid, gen_clusters[i])
+					if(sim1 > sim2):
+						flag = 0
+				if(flag == 1):
+					max_common = no_of_common
+					max_index = j
 		matched_clusters[i] = max_index
 		# print max_sim, "\t", set(actual_clusters[matched_clusters[i]].documents.keys()).intersection(set(gen_clusters[i].documents.keys()))
 	return matched_clusters
