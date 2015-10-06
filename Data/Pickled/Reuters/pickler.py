@@ -85,4 +85,4 @@ for line in content:
 		if line.startswith("<reuters"):
 			data.append(decipher(content, "reuters"))
 
-pickle.dump(data, open("reuters.pickle", "wb"))
+pickle.dump(data, open("reuters_raw.pickle", "wb"))
