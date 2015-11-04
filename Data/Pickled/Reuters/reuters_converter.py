@@ -63,7 +63,7 @@ def main():
 				if isinstance(piece, dict) and 'body' in piece:
 					# print "hell"
 					titles.append(piece['title'][0])
-					corpus.append(piece['body'][0])
+					corpus.append("".join(piece['body']))
 					topics.append(topic[0]['d'][0])
 					date = article[0]['date'][0].split('-')[:-1]
 					days.append(date_convert(date, start_date, cumulative_months, Months_lists))
