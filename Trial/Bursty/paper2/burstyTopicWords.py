@@ -5,8 +5,9 @@ import sklearn.feature_extraction.text as TFE
 
 s = 1.2
 
-def findBurstyWords(topic):
-	data, _, date = topic
+def findBurstyWords(corpus):
+	data = corpus[0]
+	date = corpus[1]
 
 	vectorizer = TFE.CountVectorizer(min_df=1)
 	dataVector = np.array(vectorizer(data), dtype=np.float64)
@@ -17,10 +18,10 @@ def findBurstyWords(topic):
 
 	avgs = dataVector.sum(axis=0) / N
 	freq = dataVector > 0.
-	
+
 
 	def cost_(i, j, t):
-		return (j-i)*math.log(t) if ( j>=i ) else 0.
+		return ( j-i )*math.log(t) if ( j>=i ) else 0.
 
 	def cost(t, j, n, w):
 		if t == 0:
@@ -52,15 +53,31 @@ def findBurstyWords(topic):
 			exit()
 
 
-def main():
-	topics = pickle.load( open("burstytopics.pickle", "rb") )
+def getBurstyWeight():
+	corpus = pickle.load( open("topicwise.pickle", "rb") )
+	topics = corpus.keys()[:10]
 	vocabulary = dict()
 	burstiness = dict()
 	for topic in topics:
-		burstyWords = findBurstyWords(topic)
+		burstyWords = findBurstyWords(corpus[topic])
 		for word, weight in burstyWords:
 			if not word in vocabulary:
 				vocabulary[word] = vocabulary.__len__()
 				burstiness[vocabulary[word]] = weight
 			elif weight > burstiness[vocabulary[word]]:
 				burstiness[vocabulary[word]] = weight
+
+def getBurstyTopics():
+	corpus, topics, titles, theday = pickle.load(open("reuters.pickle", "rb"))
+	topics_= list(set(topics))
+	topics = np.array(topics)
+	corpus = np.array(corpus)
+
+	topicWise = dict()
+	for topic in topics_:
+		indcs = (topics == topic)
+		topicWise[topic] = ( corpus[indcs], titles[indcs], theday[indcs] )
+
+	pickle.dump(topicWise, open("topicwise.pickle", "wb"))
+
+choose()
