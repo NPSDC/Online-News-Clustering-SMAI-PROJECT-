@@ -13,18 +13,13 @@ def main():
 	start_day = 1
 	cumulative_days, Months_List = get_months()
 	for month in directories:
-		print int(month)
-		print cumulative_days[int(month) - 1]
-		month_days = cumulative_days[int(month) - 1] - 31
-		days = os.listdir(os.path.join(main_dir, month))
-	 	for day in days: 
-	 		total_days = int(day) + month_days - start_day + 1
-	 		print total_days
+	 	month_days = cumulative_days[int(month) - 1] - 31
+	 	days = os.listdir(os.path.join(main_dir, month))
+	  	for day in days: 
+	  		total_days = int(day) + month_days - start_day + 1
 	 		files = os.listdir(os.path.join(main_dir, month, day))
-	# 		print os.path.join(main_dir, month, day)
 	 		for file in files:
 	 			if(file[-1] != 'e'):
-	# 				print os.path.join(main_dir, month, day, file)
 	 				f = open(os.path.join(main_dir, month, day, file), 'rb')
 	 				data = pickle.load(f)
 	 				f.close()
