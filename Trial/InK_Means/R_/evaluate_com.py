@@ -47,7 +47,7 @@ def compute_f_measure(actual_clusters, gen_clusters, l_ac, l_gen):
 	return precision,recall, f_measure
 
 def main():
-	clusters = pickle.load(open("clusters.pickle", "rb"))
+	clusters = pickle.load(open("clusters_first_post.pickle", "rb"))
 	actual_clusters = clusters['reference']; l_ac = len(actual_clusters)
 	gen_clusters    = clusters['generated']; l_gen = len(gen_clusters)
 

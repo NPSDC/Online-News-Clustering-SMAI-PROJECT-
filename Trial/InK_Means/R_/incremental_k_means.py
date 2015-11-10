@@ -132,7 +132,7 @@ def truths(topics, X):
 	return np.array(clusters)
 
 def main():
-	X, topics = pickle.load(open('tfidf.pickle', 'rb'))
+	X, topics, title, days = pickle.load(open('tfidf_fir_post.pickle', 'rb'))
 	data_cor = Corpus(max_n = 135, X = X)
 	kmeans = Inc_K_Means(0.4)
 	data_cor.do_stuff(kmeans, 135)
@@ -146,7 +146,7 @@ def main():
 		if cluster != None:
 			generated.append(cluster)
 	reference = truths(topics, X)
-	pickle.dump({'reference': reference, 'generated': generated}, open("clusters.pickle", "wb"))
+	pickle.dump({'reference': reference, 'generated': generated}, open("clusters_first_post.pickle", "wb"))
 	
 def sub():
 	while(1):
