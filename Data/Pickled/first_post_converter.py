@@ -1,4 +1,4 @@
-import pickle
+import dill as pickle
 import sklearn.feature_extraction.text as TFE
 import os
 from reuters_converter import get_months
@@ -10,7 +10,9 @@ def main():
 	titles = list()
 	topics = list()
 	tot_days = list()
+	doc_grp_id = list()
 	start_day = 1
+	id = 1
 	cumulative_days, Months_List = get_months()
 	for month in directories:
 	 	month_days = cumulative_days[int(month) - 1] - 31
@@ -29,8 +31,11 @@ def main():
  						titles.append(data[0])
  						topics.append(tags[k])
  						tot_days.append(total_days)
+ 						doc_grp_id.append(id)
+ 					id += 1
 
-	print len(corpus)
-	pickle.dump((corpus, topics, titles, tot_days) , open("First_Post_2014.pickle", "wb"))
+	print len(corpus), clust_id[-1]
+	pickle.dump((corpus, topics, titles, tot_days, doc_grp_id) , open("First_Post_2014.pickle", "wb"))
 
-main()
+if __name__ == '__main__':
+	main()

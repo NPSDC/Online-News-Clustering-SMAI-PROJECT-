@@ -736,7 +736,7 @@ class TfidfTransformer(BaseEstimator, TransformerMixin):
 
 def main():
 
-    corpus, topics, titles, days = pickle.load(open("First_Post_2014.pickle", "rb"))
+    corpus, topics, titles, days, doc_grp_id = pickle.load(open("First_Post_2014.pickle", "rb"))
 
     # vectorizer = CountVectorizer(min_df=1, fixed=True)
     # count_init = vectorizer.fit_transform(corpus[:70])
@@ -756,6 +756,6 @@ def main():
         TfIdf = np.vstack((TfIdf, tfidf))
     print TfIdf.shape
 
-    pickle.dump((TfIdf[:1000], topics[:1000], titles[:1000], days[:1000]) , open("tfidf_fir_post.pickle", "wb"))
+    pickle.dump((TfIdf[:1000], topics[:1000], titles[:1000], days[:1000], doc_grp_id[:1000]) , open("tfidf_fir_post.pickle", "wb"))
 
 main()

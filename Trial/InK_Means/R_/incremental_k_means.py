@@ -9,6 +9,7 @@ class Cluster(object):
 		self.centroid = np.empty(dim)
 		self.frozen = frozen
 		self.documents = documents
+		self.doc_grp = dict()
 		self.length = length
 		self.dim = dim
 		self.id = cid
@@ -24,17 +25,19 @@ class Cluster(object):
 			print self.id
 		self.length += 1
 
-	def add_document(self, doc, doc_num):
+	def add_document(self, doc, doc_num, doc_gr_id):
 		self.documents[doc_num] = doc
+		self.doc_grp[doc_gr_id] = doc_num
 		self.compute_centroid(doc)
 
 class Corpus(object):
 	"""docstring for Corpus"""
-	def __init__(self, X, max_n, global_index = []):
+	def __init__(self, X, max_n, doc_gr_id ,global_index = []):
 		self.list_of_clusters = np.empty(max_n, dtype = Cluster)
 		self.max_n = max_n #Max number of clusters
 		self.labels = {}
 		self.global_index = []
+		self.doc_gr_id = doc_gr_id
 		self.no_of_docs = 1
 		self.X = X
 		self.cid = 1
@@ -42,7 +45,7 @@ class Corpus(object):
 	def add_to_cluster(self, Inc_K_Means):
 		for i in xrange(self.X.shape[0]):
 			self.cid += Inc_K_Means.add_to_cluster(self.cid , self.X[i], \
-				self.no_of_docs, self.list_of_clusters, self.labels, self.max_n)
+				self.no_of_docs, self.doc_gr_id[i], self.list_of_clusters, self.labels, self.max_n)
 			self.no_of_docs += 1
 			
 
@@ -65,27 +68,32 @@ class Inc_K_Means(object):
 		# 	print "2"
 		return np.dot(cl1, cl2)/np.linalg.norm(cl1)/np.linalg.norm(cl2)
 
-	def add_to_cluster(self, cid, doc, doc_num, list_of_clusters, labels, length):
+	def add_to_cluster(self, cid, doc, doc_num, doc_gr_id, list_of_clusters, labels, length):
 		cluster_created = 0
 		clust_id = 0
 		for i in xrange(length):
 			if list_of_clusters[i] is None:
 				list_of_clusters[i] = Cluster(doc.shape[0], cid, dict())
-				list_of_clusters[i].add_document(doc, doc_num)
+				list_of_clusters[i].add_document(doc, doc_num, doc_gr_id)
 				clust_id = list_of_clusters[i].id
 				cluster_created = 1
 				break
 				
 			else:				
 				sim = self.cos_similarity(doc, list_of_clusters[i].centroid)
-				if(sim > self.threshold):
-					list_of_clusters[i].add_document(doc, doc_num)	
+				document_keys = list_of_clusters[i].doc_grp.keys()
+				flag = 0
+				if(doc_gr_id in document_keys):
+					flag = 1
+
+				if(sim > self.threshold and flag == 0):
+					list_of_clusters[i].add_document(doc, doc_num, doc_gr_id)	
 					clust_id = list_of_clusters[i].id
 					cluster_created = 0
 					break
 		else:
 			new_clust = Cluster(doc.shape[0], cid, dict())
-			new_clust.add_document(doc, doc_num)
+			new_clust.add_document(doc, doc_num, doc_gr_id)
 			clust_id = new_clust.id
 			self.freeze_cluster(new_clust, list_of_clusters, length)
 			cluster_created = 1
@@ -132,8 +140,9 @@ def truths(topics, X):
 	return np.array(clusters)
 
 def main():
-	X, topics, title, days = pickle.load(open('tfidf_fir_post.pickle', 'rb'))
-	data_cor = Corpus(max_n = 135, X = X)
+	X, topics, title, days, doc_gr_id = pickle.load(open('tfidf_fir_post.pickle', 'rb'))
+	#print doc_gr_id
+	data_cor = Corpus(max_n = 135, X = X, doc_gr_id = doc_gr_id)
 	kmeans = Inc_K_Means(0.4)
 	data_cor.do_stuff(kmeans, 135)
 	# print data_cor.cid

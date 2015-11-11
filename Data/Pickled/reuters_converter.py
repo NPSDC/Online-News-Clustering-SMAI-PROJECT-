@@ -70,5 +70,6 @@ def main():
 	print len(corpus)
 	pickle.dump((corpus, topics, titles, days) , open("reuters.pickle", "wb"))
 
-main()
+if __name__ == '__main__':
+	main()
 
