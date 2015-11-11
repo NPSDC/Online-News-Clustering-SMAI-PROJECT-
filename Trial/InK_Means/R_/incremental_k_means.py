@@ -1,15 +1,15 @@
 import numpy as np
-import pickle
+import dill as pickle
 
 frozen = list()
 
 class Cluster(object):
 	""""""
-	def __init__(self,  dim, cid, documents,frozen = 0,  length = 0):
+	def __init__(self,  dim, cid, documents, doc_grp, frozen = 0,  length = 0):
 		self.centroid = np.empty(dim)
 		self.frozen = frozen
 		self.documents = documents
-		self.doc_grp = dict()
+		self.doc_grp = doc_grp
 		self.length = length
 		self.dim = dim
 		self.id = cid
@@ -73,7 +73,7 @@ class Inc_K_Means(object):
 		clust_id = 0
 		for i in xrange(length):
 			if list_of_clusters[i] is None:
-				list_of_clusters[i] = Cluster(doc.shape[0], cid, dict())
+				list_of_clusters[i] = Cluster(doc.shape[0], cid, dict(), dict())
 				list_of_clusters[i].add_document(doc, doc_num, doc_gr_id)
 				clust_id = list_of_clusters[i].id
 				cluster_created = 1
@@ -92,7 +92,7 @@ class Inc_K_Means(object):
 					cluster_created = 0
 					break
 		else:
-			new_clust = Cluster(doc.shape[0], cid, dict())
+			new_clust = Cluster(doc.shape[0], cid, dict(), dict())
 			new_clust.add_document(doc, doc_num, doc_gr_id)
 			clust_id = new_clust.id
 			self.freeze_cluster(new_clust, list_of_clusters, length)
@@ -121,19 +121,30 @@ def random():
 			X.append(np.random.rand(4) * boolarr )
 	return np.array(X)
 
-def truths(topics, X):
+def truths(topics, X, doc_gr_id):
 	dim = X.shape[1]
 	truths = dict()
+	truths2 = dict()
 	clusters = list()
 	for i in xrange(len(topics)):
 		if not topics[i] in truths:
 			truths[topics[i]] = list()
-		truths[topics[i]].append(i)
+		if not topics[i] in truths2:
+			truths2[topics[i]] = dict()
+		if not doc_gr_id[i] in truths2[topics[i]]:
+			truths2[topics[i]][doc_gr_id[i]] = list()
+		truths2[topics[i]][doc_gr_id[i]].append(i+1)
+		truths[topics[i]].append(i+1)
+	#print truths2
 	for topic in truths:
 		document_ids = truths[topic]
-		document_dic = { doc: X[doc] for doc in document_ids }
-		cluster = Cluster( dim, topic, document_dic, True, len(document_ids) )
-		cluster.centroid = X[document_ids].mean(axis=0)
+		doc_grp_ids = truths2[topic]
+		document_grp_ids = truths2[topic].keys()
+		#print document_grp_ids
+		document_dic = { doc: X[doc - 1] for doc in document_ids }
+		doc_grp = { grp_id: truths2[topic][grp_id] for grp_id in document_grp_ids }
+		cluster = Cluster( dim, topic, document_dic, doc_grp, True, len(document_ids) )
+		cluster.centroid = X[np.array(document_ids) - 1 ].mean(axis=0)
 		if (cluster.centroid == 0.).all():
 			print cluster.id
 		clusters.append(cluster)
@@ -154,7 +165,7 @@ def main():
 	for cluster in data_cor.list_of_clusters:
 		if cluster != None:
 			generated.append(cluster)
-	reference = truths(topics, X)
+	reference = truths(topics, X, doc_gr_id)
 	pickle.dump({'reference': reference, 'generated': generated}, open("clusters_first_post.pickle", "wb"))
 	
 def sub():

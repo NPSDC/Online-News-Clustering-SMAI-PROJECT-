@@ -1,4 +1,4 @@
-import pickle
+import dill as pickle
 import numpy as np
 from incremental_k_means import Cluster
 
@@ -6,7 +6,8 @@ def cos_similarity(cl1, cl2):
 	return np.dot(cl1, cl2)/np.linalg.norm(cl1)/np.linalg.norm(cl2)
 
 def no_of_docs_similarity(cl1, cl2):
-	common = set(cl1.documents.keys()).intersection(set(cl2.documents.keys()))
+	#print cl1.doc_grp.keys(), '\n', cl2.doc_grp.keys()
+	common = set(cl1.doc_grp.keys()).intersection(set(cl2.doc_grp.keys()))
 	return len(common)
 
 def compute_best(actual_clusters, gen_clusters, l_ac, l_gen):
@@ -31,8 +32,8 @@ def compute_f_measure(actual_clusters, gen_clusters, l_ac, l_gen):
 	recall = np.empty(l_gen, dtype = float)
 	f_measure = np.empty(l_gen, dtype = float)
 	for i in xrange(l_gen):
-		docs_gen = gen_clusters[i].documents.keys()
-		docs_act = actual_clusters[matched_clusters[i]].documents.keys()
+		docs_gen = gen_clusters[i].doc_grp.keys()
+		docs_act = actual_clusters[matched_clusters[i]].doc_grp.keys()
 		common = len(set(docs_gen).intersection(set(docs_act)))
 		# print "actual\t", sorted(docs_act)
 		# print "found\t", sorted(docs_gen)
