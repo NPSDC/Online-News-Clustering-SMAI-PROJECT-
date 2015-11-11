@@ -1,4 +1,4 @@
-import pickle
+import dill as pickle
 import sklearn.feature_extraction.text as TFE
 
 
@@ -24,7 +24,7 @@ def get_months():
 		cumulative_months.append(Months[Months_lists[i]] + temp)
 		temp = cumulative_months[i]
 
-	return (cumulative_months, Months_lists)
+	return (cumulative_months, Months, Months_lists)
 
 def count_days(date, cumulative_months, Months_lists):
 	month = date[1]
@@ -52,8 +52,10 @@ def main():
 	titles = list()
 	topics = list()
 	days = list()
+	doc_grp_id = list()
 	start_date = data[0][0]['date'][0].split('-')[:-1]
 	cumulative_months, Months_lists = get_months()
+	j = 1
 	for article in data:
 		if 'text' in article[0] and 'topics' in article[0]:
 			topic = article[0]['topics']
@@ -67,8 +69,10 @@ def main():
 					topics.append(topic[0]['d'][0])
 					date = article[0]['date'][0].split('-')[:-1]
 					days.append(date_convert(date, start_date, cumulative_months, Months_lists))
+					doc_grp_id.append(j)
+					j += 1
 	print len(corpus)
-	pickle.dump((corpus, topics, titles, days) , open("reuters.pickle", "wb"))
+	pickle.dump((corpus, topics, titles, days, doc_grp_id) , open("reuters.pickle", "wb"))
 
 if __name__ == '__main__':
 	main()

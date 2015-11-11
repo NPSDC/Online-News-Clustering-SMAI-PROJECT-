@@ -13,12 +13,17 @@ def main():
 	doc_grp_id = list()
 	start_day = 1
 	id = 1
-	cumulative_days, Months_List = get_months()
+	cumulative_days, Months, Months_List = get_months()
+	directories = sorted(directories)
+	directories[1] = '10'
+	directories = sorted(directories)
+	directories[9] = '010'
 	for month in directories:
-	 	month_days = cumulative_days[int(month) - 1] - 31
+	 	month_days = cumulative_days[int(month) - 1] - Months[Months_List[int(month) - 1]]
 	 	days = os.listdir(os.path.join(main_dir, month))
+	 	days = sorted(days)
 	  	for day in days: 
-	  		total_days = int(day) + month_days - start_day + 1
+	  		total_days = int(day) + month_days - start_day + 1 	
 	 		files = os.listdir(os.path.join(main_dir, month, day))
 	 		for file in files:
 	 			if(file[-1] != 'e'):
@@ -34,7 +39,7 @@ def main():
  						doc_grp_id.append(id)
  					id += 1
 
-	print len(corpus), clust_id[-1]
+	print tot_days[-1], doc_grp_id[-1]
 	pickle.dump((corpus, topics, titles, tot_days, doc_grp_id) , open("First_Post_2014.pickle", "wb"))
 
 if __name__ == '__main__':
