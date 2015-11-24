@@ -264,7 +264,7 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
         return X[:, map_index]
 
     def _limit_features(self, X, vocabulary, high=None, low=None,
-                        limit=None):
+                        limit=None, old_vocab=None):
         # """ Remove too rare or too common features.
 
         # Prune features that are non zero in more samples than high or less
@@ -286,6 +286,8 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
             mask &= dfs >= low
         for term, old_index in list(six.iteritems(vocabulary)):
             mask[old_index] &= not term.isdigit()
+        if old_vocab:
+        	mask[old_vocab.values()] |= True
         if limit is not None and mask.sum() > limit:
             mask_inds = (-tfs[mask]).argsort()[:limit]
             new_mask = np.zeros(len(dfs), dtype=bool)
@@ -313,12 +315,12 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
             vocabulary = self.vocabulary_
         else:
             if hasattr(self, 'vocabulary_') and self.vocabulary_:
-                # NOT FIXED CASE
                 vocabulary = defaultdict(None, self.vocabulary_)
             else:
                 # Add a new value when a new vocabulary item is seen
                 vocabulary = defaultdict()
             vocabulary.default_factory = vocabulary.__len__
+            # print vocabulary.__len__()
 
         analyze = self.build_analyzer()
         j_indices = _make_int_array()
@@ -369,6 +371,9 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
         min_df = self.min_df
         max_features = self.max_features
 
+        old_vocab = None
+        if hasattr(self, 'vocabulary_'):
+            old_vocab = self.vocabulary_ .copy()
         vocabulary, X = self._count_vocab(raw_documents,
                                           self.fixed_vocabulary_)
 
@@ -376,8 +381,7 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
             X.data.fill(1)
 
         if not self.fixed_vocabulary_:
-            X = self._sort_features(X, vocabulary)
-            # print vocabulary.keys()
+            # X = self._sort_features(X, vocabulary)
 
             n_doc = X.shape[0]
             max_doc_count = (max_df
@@ -389,14 +393,27 @@ class CountVectorizer(BaseEstimator, VectorizerMixin):
             if max_doc_count < min_doc_count:
                 raise ValueError(
                     "max_df corresponds to < documents than min_df")
+            # if old_vocab:
+            #     Y = X.toarray()
+            #     Y[:, old_vocab.values()] += 2
+            #     X = sp.csr_matrix(Y)
+            #     print 
             X, self.stop_words_ = self._limit_features(X, vocabulary,
+                                                           max_doc_count,
+                                                           min_doc_count,
+                                                           None, old_vocab)
+            # if old_vocab:
+            #     indices = [ vocabulary[k] for k in old_vocab ]
+            #     Y = X.toarray()
+            #     Y[:, indices] -= 2
+            #     X = sp.csr_matrix(Y)
+            self.vocabulary_ = vocabulary
+            print "LENGTH:\t", vocabulary.keys().__len__()
+        else:
+            X, self.stop_words_ = self._limit_features(X, self.vocabulary_,
                                                        max_doc_count,
                                                        min_doc_count,
-                                                       max_features)
-
-            self.vocabulary_ = vocabulary
-            print "LENGTH", vocabulary.keys().__len__()
-
+                                                       None, None)
         return X
 
     def transform(self, raw_documents):
@@ -501,9 +518,8 @@ class TfidfTransformer(BaseEstimator, TransformerMixin):
                 new_words = df.shape[0] - self.df_.shape[0]
                 if new_words > 0:
                     df_  = np.lib.pad(self.df_, pad_width=(0,new_words), mode=str('constant'), constant_values=(0,0))
-                if new_words < 0:
-                    df   = np.lib.pad(df, pad_width=(0,-new_words), mode=str('constant'), constant_values=(0,0))
                 df += df_
+                a = list(set([ i if df[i] == 0 else None for i in xrange(df.shape[0]) ]))
             else:
                 n_samples += int(self.smooth_idf)
                 df += int(self.smooth_idf)
@@ -553,7 +569,10 @@ class TfidfTransformer(BaseEstimator, TransformerMixin):
                                      n_features, expected_n_features))
 
             df   = self.df_
-            idf  = np.log(float(self._n_samples) / df) + 1.0
+            idf  = np.zeros(df.shape)
+            for h in xrange(df.shape[0]):
+                if df[h] > 0.:
+                    idf[h] = np.log(float(self._n_samples) / df[h] + 1.0) 
             idf_ = sp.spdiags(idf, diags=0, m=n_features, n=n_features)
             # *= doesn't work
             X = X * idf_
@@ -570,40 +589,3 @@ class TfidfTransformer(BaseEstimator, TransformerMixin):
         else:
             return None
 
-
-
-def main():
-
-    corpus, topics, titles = pickle.load(open("reuters.pickle", "rb"))
-
-    # vectorizer = CountVectorizer(min_df=1, fixed=True)
-    # count_init = vectorizer.fit_transform(corpus[:70])
-    # vocabulary = vectorizer.vocabulary_
-
-    transformer = TfidfTransformer()
-    vectorizer_ = CountVectorizer(min_df=1, fixed=False)
-    
-    count = vectorizer_.fit_transform(corpus[:70])
-    transformer.fit(count)
-    TfIdf = transformer.transform(count).toarray()
-    vectorizer_.fixed = True
-    print TfIdf.shape
-
-    for doc in corpus[70:]:
-        count = vectorizer_.transform(np.array([doc]))
-        transformer.fit(count)
-        tfidf = transformer.transform(count).toarray()
-        new_words = tfidf.shape[1] - TfIdf.shape[1]
-        if new_words > 0:
-            TfIdf = np.lib.pad(TfIdf, pad_width=((0,0), (0,new_words)),  mode=str('constant'), constant_values=((0,0),(0,0)) )
-        if new_words < 0:
-            tfidf = np.lib.pad(tfidf, pad_width=((0,0), (0,-new_words)), mode=str('constant'), constant_values=((0,0),(0,0)) )
-        TfIdf = np.vstack((TfIdf, tfidf))
-        if new_words > 0:
-            print TfIdf.shape
-            print vectorizer_.vocabulary_
-    print TfIdf.shape
-
-    pickle.dump((TfIdf, topics) , open("stc.tfidf.pickle", "wb"))
-
-main()
